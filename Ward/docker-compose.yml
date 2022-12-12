@@ -1,0 +1,14 @@
+version: '3'
+services:
+  ward:
+    image: ward:local
+    container_name: ward
+    ports:
+      - 8120:4000
+      - 8130:8130
+    restart: unless-stopped
+
+    #volumes:
+    #  - ./deploy.sh:/deploy.sh
+
+    #entrypoint: ["bash", "-c", "/deploy.sh"]
