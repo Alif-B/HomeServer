@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #Variable Declaration - Change These
-HOSTED_ZONE_ID="Z074707717XONH7AT9RQ"
+HOSTED_ZONE_ID=("zone_id_1" "zone_id_2")
 NAME="jarvisirl.click."
+HZS_TO_CHANGE=("jarvisirl.click" "odeonx.ca")
 TYPE="A"
 TTL=300
 
@@ -30,6 +31,7 @@ fi
 echo "IP Changed, Updating Records"
 
 #prepare route 53 payload
+for i in ${!HZS_TO_CHANGE[@]}; do
 cat > ./route53_changes.json << EOF
     {
       "Comment":"Updated From DDNS Shell Script",
@@ -42,7 +44,7 @@ cat > ./route53_changes.json << EOF
                 "Value":"$IP"
               }
             ],
-            "Name":"$NAME",
+            "Name":"${HZS_TO_CHANGE[$i]}",
             "Type":"$TYPE",
             "TTL":$TTL
           }
@@ -52,8 +54,9 @@ cat > ./route53_changes.json << EOF
 EOF
 
 #update records
-aws route53 change-resource-record-sets --hosted-zone-id $HOSTED_ZONE_ID --change-batch file://./route53_changes.json >> /dev/null
+aws route53 change-resource-record-sets --hosted-zone-id ${HOSTED_ZONE_ID[$i]} --change-batch file://./route53_changes.json >> /dev/null
 
 #Update current
-aws route53 list-resource-record-sets --hosted-zone-id $HOSTED_ZONE_ID | \
+aws route53 list-resource-record-sets --hosted-zone-id ${HOSTED_ZONE_ID[$i]} | \
 jq -r '.ResourceRecordSets[] | select (.Name == "'"$NAME"'") | select (.Type == "'"$TYPE"'") | .ResourceRecords[0].Value' > ./current_route53_value
+done
